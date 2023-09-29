@@ -1,0 +1,21 @@
+-- 1.5.3 (19.3.2017) --
+* hardcoded symbols patterns up to build 14393.953
+* fixed caption misalignment when glow effect is disabled
+* added option to draw caption centered (HKCU\SOFTWARE\Microsoft\Windows\DWM: CenterCaption (DWORD 0x0 / 0x1))
+* changed IAT hooks initialization order
+* enable SeDebugPrivilege in aerohost process
+
+-- 1.5.2 (7.1.2017) --
+* merged with ModernFrame.dll (use regsvr32.dll to get glass frame on modern apps)
+* support to load UxTSB.dll by aerohost process
+* fixed left offset of window caption
+* some minor fixes
+
+-- 1.5.1 (16.10.2016) --
+* optimization: don't use glass safety zone when rendered region does not contain glass
+* fixed glass safety zone render transformation
+* DWM\ColorizationColor(Inactive) settings can be used again for setting frame edge color
+* DWM\ColorPrevalence settings is respected
+
+-- 1.5 --
+* version designed for Windows 10 Anniversary (Redstone 10.0.14393)

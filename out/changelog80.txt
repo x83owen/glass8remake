@@ -1,0 +1,219 @@
+-- 1.3 --
+* internal changes to be consistent with Aero Glass for Win8.1 code
+* fixes to allow on-the-fly preview from prepared GUI application
+* CustomThemeResource settings name changed to CustomThemeAtlas
+
+-- 1.2 --
+* inactive frame blur/color balances are not altered by theme opacity settings when user set them manually
+* blur deviation settings is applied everytime colorization is changed (so no DWM restart is needed now)
+* custom theme resource can now be loaded globally from HKEY_LOCAL_MACHINE
+* glass is disabled when running on a battery
+--> HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\DWM:DisableGlassOnBattery (DWORD 0x0 / 0x1 = default)
+
+* implemented glass reflection (aero stripes only)
+--> HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\DWM:ColorizationGlassReflectionIntensity (DWORD 0x0 = disabled (default) / other values = enabled)
+
+-- 1.1 --
+* implemented algorithm to generate gaussian blur offsets and weights
+--> you can change blur deviation in HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\DWM:BlurDeviation (DWORD, default = 30)
+--> setting blur deviation to 0 will result in transparent non-blurry frames
+
+-- RC4 --
+* automatic symbols downloading for DWM libraries
+--> this delays glass loading a bit
+--> only for udwm.dll and dwmcore.dll (not for themes/shell32 for performance reasons)
+
+* added option to enable/disable to bypass theme signature
+--> HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\DWM:BypassThemeSignature (DWORD 0x0 to disable (default) / 0x1 to enable)
+
+* custom swatches works with HKCU registry key
+* fixed crash with 3rd-party DWM hooks (e.g. WindowsFX)
+
+-- RC3 --
+* implemented public symbols downloading from MS symbol servers
+--> this allows automatic adjusting when DWM version changes
+--> it is not currently used, it is only to test whether symbols downloading works
+--> requires internet connection
+--> currently enabled by default but if it brings some problems or you don't want Aero Glass to connect to MS servers you can disabled it in HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\DWM:EnableSymbolServer (DWORD 0x0 to disable, 0x1 to enable)
+
+* implemented shader render target optimization
+--> this works only on some video drivers
+--> it takes less memory and increase speed of blurring as it avoids copying screen content to the intermediate buffer
+--> disabled by default
+--> it can be enabled in HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\DWM:OptimizeShaderResource (DWORD 0x0 to disable / 0x1 to enable)
+
+* implemented feature to enable using custom Windows themes
+--> independent from UX DLLs versions
+--> it has not been tested at all so it is currently only a candidate for future feature
+
+* workaround to correctly refresh inactive frame color when colorization settings is changed
+* some small bug fixes
+
+-- RC2 --
+* optimized buffer size
+* send integer screen size to vertex shader (this should reduce occasional flickering)
+* improved D3D error handling
+
+-- RC1 --
+* fixed hook return values on x64
+* fixed compatibility with old 64-bit udwm.dll
+* fixed exception handler when settings loading crashes
+* fixed crash when removing D3D device
+* do not generate occlusion for border-less windows
+* fixed bug when source box does not fit into screen height in CopySubresourceRegion
+* produce minidump on crash instead of crashlog
+
+-- RC0 --
+* correctly adjust colorization settings to generate glass safety zone
+--> this should remove most of artifacts caused by not reducing occlusion rectangles by blur radius
+
+* correctly choose whether to fill surface by color or to blur its background
+* frame colors respect theme opacity settings
+* fixed incompatibility on some dwmcore.dll versions
+* workaround for crash on settings reload
+* fixed colorization algorithm in 32-bit
+
+-- BETA 3 --
+* completely removed layered windows hack
+* fixed glass on the secondary taskbar
+* many code fixes and refactoring
+* almost all low-level stuff (see beta 2 changelog) should work regardless the used DLL versions and even on 32-bit
+--> this probably still needs some coding
+--> until MS changes the internal DWM functions
+
+* implemented that color swatches in control panel can be loaded from external DLL
+--> registry script which changes default swatches to Win8 RP (more glass-friendly) is attached
+
+* fixed glass on surface render targets
+--> glass won't work if one side of your screen resolution is less than 200 pixels
+
+-- BETA 2 --
+* do not generate occlusion rectangles for glass windows
+--> WS_EX_LAYERED bit is not set anymore
+--> works for compatible udwm.dll (6.2.9200.16420) only, in other case it will fallback to the layered windows
+
+* render blur effect only if DWM is attempting to draw glass
+--> fixes rendering blur effect on solid-color surfaces
+--> works for compatible dwmcore.dll (6.2.9200.16433) only
+
+* blur resources sizes are set according to render target size and not the primary monitor resolution
+* removed support for Direct2D mode
+--> Direct3D mode is supported now only, because it would be hard to maintain two different blur implementations
+--> Direct3D mode is more native, it uses internal DWM pixel shaders and respects DWM colorization settings
+
+* added option to render blur completely NATIVELY
+--> HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\DWM:UseNativeBlur (DWORD values 0x0 (default) / 0x1)
+--> works for compatible dwmcore.dll (6.2.9200.16433) only and it probably becomes unusable with future Windows updates
+--> very glitchy, because I returned only a very small portion of the removed code
+--> it is just a preview to compare visual and performance differences
+
+* fixed DwmpGetColorizationParameters function which resulted in invalid stack in some cases
+* use correct Gaussian weights from Win8 RP
+* do not render frame color until the window is fully opened (Win7 behaviour)
+* reimplemented the colorization algorithm for transparent windows
+--> works for compatible shell32.dll (6.2.9200.16496) only
+
+-- BETA 1 (01.04.2013) --
+* change MIL message alpha opacity to 255 when current value is 254
+--> this replaces old method of disabling layered windows blending and can be altered by HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\DWM:ModifyMILContentOpacity (DWORD values 0x0 / 0x1 (default))
+* using D2D-like trick in D3D to avoid incorrectly blurred window edges
+* added feature to have rounded window frames (HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\DWM:RoundRectRadius (DWORD, Win8 = 0, Win7 = 12))
+* fixed incorrect drawing of plain color surfaces resulting in completely transparent controls
+* when using AppInit_Dlls, inject into explorer.exe to enable correct taskbar blurring
+* fixed crash logs when using AppInit_Dlls
+* increased blur radius in D3D mode
+* RP-like computing of default inactive border color in D3D mode
+
+-- PREVIEW 6 (26.03.2013) --
+* default device level changed back to native one, 
+--> if glass does not work for you, then you play with HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\DWM DeviceFeatureLevel (DWORD valied values: 0x9100, 0x9200, 0x9300, 0xA000, 0xA100, 0xB000, 0xB100) - do not touch this settings if everything works you because it switches your graphic card into old compatibility mode!!!
+* removing window layered bit when window border is removed
+--> this should disable layered window on fullscreen application, if it does not help, I will try to complete disable all layered windows and not to render blur effect when fullscreen window is on top
+* removed Direct3D COM object hooking and replaced with proxy objects
+* added one-hour preview notification (yes, sorry, but this is still preview only)
+* fixed BlurDeviation settings
+* fixed crash/graphics glitches when theme generates more vertex count than expected
+* fixed memory leaks when graphic adapter is removed
+* render taskbar background when high color intensity is set
+* added possibility to load glass with system
+--> WARNING!!! This feature is for very experienced testers only, because it enables that glass will be loaded directly with DWM process. When glass loading fails, your computer becomes unbootable!!!
+--> Registry script attached, modify it to match the path where you extract downloaded files (change LoadAppInit_DLLs to 0 to disable loading)
+--> You can hold CTRL key while DWM is being loaded to avoid glass loading (DLL is still loaded but no functionality is activated)
+--> Debug console is not displayed when glass is loaded this way
+
+-- PREVIEW 5 (09.03.2013) --
+* default device feature level is set to 9.1 until correct solution is found
+* experimental blur behind taskbar (GlassTransparency settings is not applied to it!!!)
+* added possibility to set own theme resource (requires bitmap with non-premultiplied alpha)
+* using screen size instead of virtual screen size on some places (does this affect multimonitor configuration???)
+* decreased interval for setting layered windows to 250 ms
+* settings moved to HKEY_CURRENT_USER/HKEY_LOCAL_MACHINE:
+
+HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\DWM (applied on DWM startup, so dwm.exe restart is needed on change)
+DisableLogging (DWORD) - 0 = enables, 1 = disables verbose logging into debug.log file (default = 0)
+DeviceFeatureLevel (DWORD) - Direct3D version which should be used for DWM rendering (default = 0x9100)
+BypassLayeredWindowsRendering (DWORD) - 0 = enables, 1 = disables alpha blending of layered windows with alpha value of 254 (default = 1) 
+UseDirect2DRendering (DWORD) - 0 = use Direct3D mode, 1 = use Direct2D mode
+
+HKEY_CURRENT_USER\Software\Microsoft\Windows\DWM (applied when colorization settings is changed - e.g. in control panel)
+BlurDeviation (DWORD) - the amount of blur to be applied. Set to 0 to disable blur effect completely (default = 30)
+GlassTransparency (DWORD) - value of alpha component (0-255) which will be applied to the glass, has no effect on taskbar (default in D3D = 64, in D2D = 175).
+CustomThemeResource (STRING) - path to PNG file with theme resource (bitmap must have exactly the same layout as msstyle theme you are using!)
+ColorizationBlurBalanceInactive
+ColorizationAfterglowInactive
+ColorizationColorInactive
+ColorizationAfterglowBalanceInactive
+ColorizationColorBalanceInactive
+
+-- PREVIEW 4 (24.02.2013) --
+* begun work on Direct3D mode, it works, it should be much faster than Direct2D mode but it has a lot of glitches at this time. This mode use native DWM objects and shaders!!! (but Direct2D is still as default until it is complete)
+* disabled alpha-blending of layered windows with alpha value of 254 - this should make rendering faster and avoid small transparency on all windows. This option has not been tested much so you can disable it using the registry settings.
+* removed option to force bounding rectangle redraw
+* fixed PDB file loading to generate useful crash reports
+* added hot key Ctrl+Alt+F12 to quickly disable DWM hooking (e.g. in the case of black screen etc.)
+* added new registry settings:
+
+In Direct3D mode, you can use classic colorization settings under HKEY_CURRENT_USER\Software\Microsoft\Windows\DWM:
+ColorizationBlurBalance, ColorizationAfterglow, ColorizationColor, ColorizationColorBalance
+
+HKEY_USERS\.DEFAULT\Software\Microsoft\Windows\DWM (no user-specific settings now!)
+BypassLayeredWindowsRendering (DWORD) = when set to 0, the layered windows with 254 alpha are rendered in normal way.
+
+UseDirect2DRendering (DWORD) = 0 = use Direct3D mode, 1 = use Direct2D mode
+
+ColorizationXXXInactive (DWORD) = sets colorization settings for inactive windows (Direct3D mode only). In Direct2D you can use only ColorizationColorInactive (format is 0xAARRGGBB - alpha is ignored) to set the the color of inactive border.
+
+Note: settings BlurDeviation has no effect in Direct3D mode.
+
+-- PREVIEW 3 (04.02.2013) --
+* removed dependency on C:\DWM folder
+* loop for layered windows chained into DWM main window's timer
+* set lower interval for setting layered windows
+* fixed crash for application which do not like WS_EX_LAYERED to be set too early (e.g. Windows Paint)
+* fixed a few memory leaks
+* added temporary workaround for iTunes (it will be removed in the future!!!)
+* added some new EXPERIMENTAL registry settings:
+
+HKEY_USERS\.DEFAULT\Software\Microsoft\Windows\DWM (no user-specific settings now!)
+DisableDebugLog (DWORD) = when set to 1, it disables logging to file. NOT RECOMMENDED!!!
+
+ForceBoundingRectangleRedraw (DWORD) = when set to 1, layered windows technique will be disabled completely. Instead of it, it tries to repaint whole bounding rectangle of the window texture (with respect to clipping area). This settings is for users who don't like layered windows but I don't recommend to use it at all, because it has not been tested much, you won't see totally obscured objects in transparent area and it brings a lot of redraw glitches (so do not complain about them)!!!
+
+-- PREVIEW 2 (31.01.2013) --
+* removed MSVCR110D.DLL and MSVCP110D.DLL dependency
+* started code refactoring
+* fixed DWM deadlock with some applications (e.g. Snipping Tool)
+* decreased video memory to the half
+* it should be approx. three-times faster (although it can still be slow when having many large windows)
+* added some registry settings:
+
+HKEY_USERS\.DEFAULT\Software\Microsoft\Windows\DWM (no user-specific settings now!)
+DeviceFeatureLevel (DWORD) = forces to use specific Direct3D version level. Helpful in case of incompatible drivers etc. Allowed values 0x9100, 0x9200, 0x9300 (VMWare default), 0xa000 (for D3D 10), 0xa100 (for D3D 10.1), 0xb000 (for D3D 11), 0xb100 (for D3D 11.1). Do not use if everything works correctly!!!
+
+BlurDeviation (DWORD) = the amount of blur to be applied. Set to 0 to disable blur effect completely. Default value is 30.
+
+GlassTransparency (DWORD) = value of alpha component which will be applied to the glass. Range 0 (total transparency) - 255 (opaque), default value is 175.
+
+
+-- PREVIEW 1 (22.01.2013) --
+* initial version

@@ -1,0 +1,188 @@
+-- Alpha 1 --
+This is intended for everyone who wants to TEST, let's call it alpha. It is full of bugs and not optimized at all. But it should work... maybe.
+
+* Some feature of Win8 version have been reimplemented - rounded corners, custom resources, glow effect, maybe bypassing theme signature (this has not been tested at all).
+* You can change some options via registry - blur deviation, transparency (aka BlurBalance).
+* For glow effect, you need to have glow.bmp in folder with DLL
+* For custom theme resource you need to save it as themeatlas.png into folder with DLL (no registry settings for these now).
+* There is a known glitch when frame extended into client area or ribbon window is covered by another frame (part of border will be black).
+* Currently 64-bit only and intended for testing purposes only.
+
+At this time, I recommend to install it in the same way as Aero Glass for Win8. You can use loader from previous prototype but it won't load your registry per-user settings then.
+
+-- Alpha 2 --
+Let's have a look at alpha 2 of Aero Glass for Win8.1. This is still for preview only, so no internal optimizations (just a code mess to make it work). This version includes several changes:
+
+* fix (or rather workaround) for glass safety zone on windows with extended frame (ribbon etc.)
+* included NoelC's glow.bmp
+* fix for invalidly blurred pixels at screen edges
+* fix for glass being on incorrect places (e.g. background of the desktop when explorer is not running)
+
+Because Win8.1 uses Direct2D for desktop rendering, the blurring algorithm works a bit different than Direct3D in Win8. This makes ColorizationBlurBalance settings unuseful and amount of color transparency is taken directly from alpha channel specified in ColorizationColor (this value is in form 0xAARRGGBB where AA represents two digits of alpha value 00 [fully transparent] - FF [fully opaque]). This is still controlled via intensity slider in control panel but ColorizationBlurBalance is completely ignored now (maybe we could add it some special function later). 
+
+Glass reflection has been ported to this version and its intensity can be controlled via common DWORD settings ColorizationGlassReflectionIntensity where value is 0 - 100. 
+
+I also added temporary function which makes glass work correctly even for all already opened windows. This is very low level thing which will be removed in the final version and it can be even broken by any Windows updates (and there is no other solution for it). This version does not include hardcoded DWM function patterns and thus it needs public symbols to be present - symbols are downloaded automatically from MS server for donators (i.e. if license.key is present). Copy dbghelp.dll and symsrv.dll from Aero Glass for Win8 to Win8.1 folder to make symbols downloading work. 
+
+Maybe I fixed/modified more but I don't remember everything. And yes, there is still present one glitch when window edge is behind the frame (and needs to be blurred) and you slowly move another window over the frame - do no report it, I'm aware of this and it is currently not easy to fix. 
+
+-- Beta 1 --
+* code refactoring
+* completely rewritten glass safety zone layer to match the same thing in Win7/8
+* some blur buffer optimizations
+* custom theme resource (atlas image) can still be loaded from themeatlas.png file only (it will be fixed later)
+* DWM symbols are still needed (it will be changed in RC/final) - dbghelp.dll+symsrv.dll now included so symbols will download automatically if you have license key
+* glass reflection is moving a bit (similar to effect in Win7)
+
+-- Beta 2 --
+* previous beta 1 disabled occlusion to correctly render blur regions. It caused that it rendered even non-visible (covered) window regions resulting in lower performance and higher power consumption
+* this part has been completely reimplemented (because needed code from Win8 is not already present) and now it works as intended - invisible regions are not rendered at all
+* glass safety zone fixes
+* fixes for multiple monitors/devices/render targets
+
+-- Beta 3 --
+* applied affine transformation to glass safety zone and blur effect rendering
+* registry settings is loaded even when AppInit_DLLs loading is not used
+* CustomThemeResource settings is read from registry again (but custom atlas is not applied to already visible windows - they need to be refreshed manually)
+* fixed blur on regions consisting of more than 4 rectangles
+
+-- Beta 4 --
+* HKCU atlas loading fix
+* multi-displays and rotated displays fixes
+* optimization: do not inflate dirty regions and do not use glass safety zone when rendered region does not contain glass
+* glow bitmap is read from system theme (or custom atlas if used), however, only horizontal sizing margins are respected due to the fact how Win8.1 deals with window caption (it seems to be a bug in DWM itself); vertical margins are always zero and glow bitmap is stretch over whole caption height
+* because there is no appropriate theme part to be used for reflection bitmap (aero peek background is not suitable), the reflection bitmap is read from PNG file specified in registry HKCU(or HKLM)\Software\Microsoft\Windows\DWM:CustomThemeReflection (SZ_STRING)
+* renamed registry settings CustomThemeResource to CustomThemeAtlas
+
+-- Candidate for Release Candidate --
+* simplified some things about settings/theme loading
+* registry settings to enable/disable glass when running on battery should work again (default is "Disable glass on battery") - probably disables blur effect only and leaves full transparency now
+* multiple monitors fixes
+* offscreen render target fixes (e.g. Magnifier)
+* prepared some parts of code to build 32-bit version soon
+* caption glow is now stretched to whole frame height
+* fixed crashes/weird rendering when resource domain changes (e.g. when exiting games, changing video adapter etc.)
+* maybe some other fixes which I don't remember
+
+-- Release Candidate 1 --
+* a few fixes
+* donation key is loaded from donation.key file (license.key still supported but it will be removed in the future)
+* added more error logging
+* added 32-bit build
+* added settings to tweak text glow effect: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\DWM:TextGlowMode (DWORD): 0x0=No glow effect, 0x1=Glow effect loaded from atlas, 0x2=Glow effect loaded from atlas and theme opacity is respected, 0x3=Composited glow effect using your theme settings
+
+And yes, you still need to manually download symbols for udwm.dll, dwmcore.dll and dwm.exe else it won't work.
+
+-- Release Candidate 2 --
+We are getting closer and closer to release so here is another build to test. This build makes some things to work in different way, because it does not use AppInit_DLLs registry value to load my library into memory. This requires also some other significant changes: 
+
+* simply unpack to your folder and execute install.bat with admin privileges, it will inform you with success or error message
+* although you can still use AppInit_DLLs registry value to load this library, the method won't be supported anymore and library won't be tested for this functionality
+
+With these changes, some functionality has been removed, because it cannot work - especially uxtheme.dll and explorer.exe hooks: 
+
+* bypass theme signature feature has been removed - WARNING: if you currently use unsigned theme, your system may become unbootable so restore default Windows theme at first
+* taskbar won't be blurred anymore unless you use some 3rd party tweak to restore this effect (e.g. StartIsBack)
+* custom swatches are not loaded and colorization control panel will fail to load if you have custom swatches applied in the registry
+* all of this removed functionality may be restored in separate libraries in the future but they won't be maintained in DWMGlass.dll anymore, because they are out of scope of DWM hooking.
+
+Some other important changes: 
+* this version contains hardcoded default patterns for DWM functions so you don't need DWMCORE.PDB and UDWM.PDB files unless any future Windows update changes the patterns. However, Aero Glass will work in limited mode when DWM.PDB is not present because it is needed to correctly load user settings from registry. Limited mode means that all settings are in their default values and you cannot control them in any way.
+* fixed small blur glitch
+
+-- Pre-release --
+* Fixes for occasional blur glitches
+* Fixed bug that settings was not sometimes loaded
+* Modified settings to allow adjusting composited (mode 3) glow effect size: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\DWM:TextGlowMode (DWORD): HIWORD specifies glow size (0 = theme default), LOWORD specifies glow mode 
+* Some other small fixes
+
+-- 1.0 --
+* fatal errors are always logged regardless the EnableLogging settings
+* included default reflection image
+* some additional error checking and small code cleanup
+* small fix around glass safety zone
+
+-- 1.1 --
+* fixed errors when caption font size is set to zero
+* select correct target for glass safety zone
+* glass safety zone is local with static surfaces
+* flush before glass safety zone if required
+* removed symbol dependency on destructor of COcclusionContext
+* CoCreateInstance(CLSID_WICImagingFactory...) changed to WICCreateImagingFactory_Proxy
+* fix race condition when loading custom reflection
+* added human readable message when donation key/atlas/reflection loading fails
+* fixed blur effect on targets with alpha mode different from D2D1_ALPHA_MODE_IGNORE
+* added timestamp to minidump file name
+* verifying aerohost privileges should not be language-dependent
+
+-- 1.2 --
+* disable glass safety zone when rendered region is full covered
+* ensure that correct dbghelp.dll in AeroGlass directory is loaded
+* caption color fix 
+* added option set custom caption color: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\DWM:ColorizationColorCaption (DWORD in format 0xBBGGRR)
+* do not unload WindowsCodecs.dll to avoid race condition with WIC hooking
+* completely rewritten settings loading
+ - aerohost.exe needs to be running else settings from HKEY_CURRENT_USER won't be loaded
+ - it means that user's settings from HKEY_CURRENT_USER will NOT be loaded when deprecated AppInit_DLLs method is used!!!
+ - dwm.exe symbols are not needed anymore to load user's settings
+ 
+-- 1.2.1 --
+* fixes to allow on-the-fly preview from prepared GUI application
+
+-- 1.3 --
+!!! This is recommended update which contains many internal optimizations and security fixes !!!
+* experimental support for Windows 10 Technical Preview
+* hardcoded symbol patterns for DWM versions up to 9600.17415 and 9879.0
+* fixed atlas reloading after fast startup
+* fixed glass z-ordering for occlusion
+* added basic aerohost protection not to load malformed DLL
+* delay-loaded many dependencies to improve load time
+* glass effect is enabled by default even when running on the battery
+* license.key is not loaded anymore - only donation.key is accepted (rename old name if you still have it)
+* garbage collector for Direct2D resources
+... many others will be slowly added here (when I remember all of them :)) ...
+
+-- 1.3.1 --
+* fixed the problem that the key was not accepted under rare circumstances
+
+-- 1.3.2 --
+* Windows 10 support
+* changed initialization order to allow blur effect even when symbols cannot be loaded
+* fixed race condition causing that settings were not rarely loaded
+
+-- 1.4 --
+* Windows 10 10.0.10240 support
+* hardcoded symbol patterns for current version of DWM in Win8.1
+* added build numbering
+* hopefully fixed crash on device resource change
+* blur deviation setting partially influences Win10 blur accent too
+* lots of stability and performance fixes and code refactoring
+* added >>experimental<< module to enable glass frame on Win10 Modern apps - this requires secure boot to be off
+* added support for custom atlas layout, format:
+	- each line has format "x;y;z=a,b,c,d" 
+	- x, y, z specify the part, its state and the property respectively
+	- a, b, c, d specify position rectangle in atlas image (for z = 8002) or the part sizing/content margins (for z = 3601/3602)
+	- see example layout file for description of individual part identifiers
+	- see MSDN documentation of GetThemeRect and GetThemeMargins function for further information
+	- line "CaptionHeight=n" allows you to change the size of caption buttons to "n" pixels
+	- everything after # is considered to the comment and is ignored 
+
+-- 1.4.1 --
+* when Aero Glass is loaded broadcast WM_THEMECHANGED to all applications
+* fixed crash on invalid reflection image
+* hardcoded symbol patterns for DWMCORE build 10240.16461
+* fixed glass occlusion on regions near the screen edge
+* fallback into always-glass mode only when symbols have not been loaded
+* Win10 only: added support for AccentColor and AccentColorInactive settings to set different color for caption header
+ - DWORD values 0xRRGGBB in SOFTWARE\Microsoft\Windows\DWM
+
+
+* KNOWN WIN10 LIMITATION: 
+	- due to the way how Win10 composes windows frames, it is not possible to fully apply corner radius
+	- for the same reason you can see blurred separation of	window caption
+
+-- 1.4.6 --
+* hardcoded symbol patterns for build 10586.589
+* dirty region optimization fixes
+* when DWM process crashes too often, Aero Glass will stop injecting
+* fixed data sharing between more drawings in one pass

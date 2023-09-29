@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<!-- Mirrored from glass8.eu/guide by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 08 Jul 2022 23:42:05 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head>
+	<meta charset="utf-8">
+
+	<title>Aero Glass for Win8+</title>
+
+	<link rel="stylesheet" href="css/style.css">
+	<meta name="viewport" content="width=device-width">
+	</head>
+
+<body>
+	<div id="page">
+		<div id="header">
+			<img src="images/header.jpg">
+		    <ul id="menu">
+		      <li><a href="index.html">Aero Glass</a></li><li>|</li>
+		      <li><a href="features.html">Features</a></li><li>|</li>
+		      <li><a href="download.html">Download</a></li><li>|</li>
+		      <li><a href="guide.html">Guide</a></li><li>|</li>
+		      <li><a href="beta.html">Experimental versions</a></li>
+		    </ul>
+		</div>
+
+		<div id="content">
+<ul style="padding: 0">
+  <li class="question">Can anyone install this software on his computer?</li>
+	<li class="answer">This library is intended for advanced users only. If you are a beginner and you do not have deeper knowledge of Windows (such as registry editing etc.)
+		you should not install this software. Also, this guide counts that you are advanced user and explains several things in technical language.</li>
+
+	<li class="question">How to install this software?</li>
+	<li class="answer"><u>Important thing is that you must place all files in writable location (i.e. not in Program Files),</u>, because DWM process does not run under user's credential.
+		If you don't do this, Aero Glass will not be able to download symbols or create debug logs!
+		If you worry about the security, you can change the permission of aerohost.exe and dwmglass.dll files to be writable by Administrators group only and leave it read-only to others.
+		<br><br>
+		1) If you are not so advanced user, you should download installer in any case. It will select the best way for your computer.<br><br>
+		2) On <u>Windows 8.1+</u>, you should use host process which will inject DLL into DWM for you and also maintains that user settings are correctly loaded.
+		Simply create schedule task to run aerohost.exe when your computer starts.
+		This task must be created with admin privileges and run under SYSTEM account. You can find simple script to schedule such task <a href="out/schedule.bat" download>here</a>.<br><br>
+	</li>
+
+	<li id="symbols" class="question">What are the DWM symbols and where to get them?<br>I see "Your DWM is incompatible" message. What to do?</li>
+	<li class="answer">Aero Glass for Win8.x+ works by injecting re-implemented code into several DWM functions. This can be achieved only when the absolute location of each function is known.
+		These locations are described in special files called "program database" and you can recognize them by their .PDB extension. They contain set of all public DWM variables and functions
+		(which are called symbols) together with their memory offsets (relative locations) and other information. Aero Glass for Win8.x+ is able to load these files from "symbols" directory stored in your Aero Glass installation
+		directory, find appropriate symbol and compute absolute memory location.<br><br>
+		Since Aero Glass for Win8.x knows how each DWM function should look like, it is able to find them without the need of the program databases. Thus, in normal situation, user should not bother about
+		it at all. However, in some rare situations (e.g. some Windows update changes the look of the function), it may happen that known symbol is not found and the only possibility is to load its location from the external
+		program database. The best practice to know more and to get symbol files is reading <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ee416588(v=vs.85).aspx#getting_the_symbols_you_need">Microsoft's documentation</a>
+		(you will need symbol files for dwmcore.dll and udwm.dll).
+		The most important thing is that the version of the program database must correspond to the used DWM library version.<br><br>
+		And just to be complete, Aero Glass for Win8.x+ always knows all required functions which are current to the date of the release.
+	</li>
+
+	<li class="question">How to change colour of inactive windows border?</li>
+	<li class="answer">This can be easily done using the Windows Registry Editor in the branch HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\DWM.
+		You can find there already existing values with name ColorizationXXX (where XXX represents an individual settable component) or AccentColor (Win10+) intended for
+		active windows. If you create same values with suffix Inactive (i.e. ColorizationXXXInactive), such settings will be applied to inactive
+		windows. <br><br>But remember that colorization of the frame is also influenced by used theme. Majority of the themes have set opacity of inactive
+		frames to 20%.</li>
+
+	<li class="question">How can I change Aero Glass settings?</li>
+	<li class="answer">Since Aero Glass for Win8.x+ is native as much as possible, it accepts settings which you set in standard Windows Colorization control panel. As a bonus,
+	you can set colors for inactive borders mentioned above and following options can be applied via Windows registry. <u>On Windows 8.1+, you must have aerohost.exe process running else your
+	settings won't be loaded.</u>
+	<table id="registry">
+		<tbody>
+			<tr><td colspan="3">HKLM\SOFTWARE\Microsoft\Windows\DWM</td></tr>
+			<tr><td>EnableLogging</td><td>DWORD</td><td>0x0 = disables logging to debug.log (default) / 0x1 = enables verbose logging / logging of donation key messages and fatal errors is always enabled</td></tr>
+			<tr><td>MaxDeviceFeatureLevel (Win8 only)</td><td>DWORD</td><td><a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ff476329(v=vs.85).aspx">Describes the set of features targeted by a Direct3D device.</a></td></tr>
+			<tr><td>DisableGlassOnBattery</td><td>DWORD</td><td>0x1 = When your AC power is unplugged and computer is running on the battery then the blur effect will be disabled to decrease power consumption (default) / 0x0 = blur effect won't be disabled on battery</td></tr>
+			<tr><td colspan="3">HKLM\SOFTWARE\Microsoft\Windows\DWM (global)<br>HKCU\SOFTWARE\Microsoft\Windows\DWM (per-user)</td></tr>
+			<tr><td>ColorizationColor<br>ColorizationColorInactive<br>AccentColor (Win10+)<br>AccentColorInactive (Win10+)</td><td>DWORD</td><td>ARGB color used for the glass effect. On Windows 8.1+, alpha component specifies the amount of the opacity of the windows frames.</td></tr>
+			<tr><td>ColorizationColorBalance<br>ColorizationColorBalanceInactive</td><td>DWORD</td><td>The intensity of the color (0-100%).</td></tr>
+			<tr><td>ColorizationBlurBalance<br>ColorizationBlurBalanceInactive<br>GlassOpacity (Win10 RS1)</td><td>DWORD</td><td>The amount of the opacity of the windows frames (0-100%).</td></tr>
+			<tr><td>ColorizationColorCaption (Win8.1+ only)</td><td>DWORD</td><td>Color used for drawing window titles. Format is 0xBBGGRR.</td></tr>
+			<tr><td>BlurDeviation</td><td>DWORD</td><td>Standard deviation for Gaussian blur, default = 30 (which means &sigma; = 3.0)<br>Value 0 results in non-blurred transparency.</td></tr>
+			<tr><td>RoundRectRadius</td><td>DWORD</td><td>The radius of glass geometry, Win8 = 0, Win7 = 12</td></tr>
+			<tr>
+				<td>CustomThemeAtlas</td><td>String</td><td>path to PNG file with theme resource (bitmap must have exactly the same layout as msstyle theme you are using!)<br>
+					<a href="themes/win8rtm.png">The resource for default Win8 RTM theme can be downloaded here</a>.
+				</td>
+			</tr>
+			<tr><td>ColorizationGlassReflectionIntensity</td><td>DWORD</td><td>The intensity of reflection effect (0-100%). Default value is 0%.</td></tr>
+			<tr><td>CustomThemeReflection (Win8.1+ only)</td><td>String</td><td>path to PNG file which will be used as overlay image to simulate reflection (Aero stripes) effect</td></tr>
+			<tr>
+				<td>TextGlowMode (Win8.1+ only)</td><td>DWORD</td><td>Specifies how window caption glow effect will be rendered.<br>
+					0x0=No glow effect<br>
+					0x1=Glow effect loaded from atlas (default)<br>
+					0x2=Glow effect loaded from atlas and theme opacity is respected<br>
+					0x3=Composited glow effect using your theme settings. HIWORD of the value specifies glow size (0 = theme default).
+				</td>
+			</tr>
+			<tr><td>EnableBlurBlend</td><td>DWORD</td><td>Controls how the blurred background and frame colour are composited together (0x0 = default).</td></tr>
+		</tbody>
+	</table>
+	</li>
+
+	<li id="themes" class="question">What are the custom theme atlas files?</li>
+	<li class="answer">When Desktop Windows Manager wants to draw frame controls (such as minimize/maximize/close buttons, frame shadow etc.), it uses images which are stored in your current theme.
+		Normally, you would need to edit your theme and install UxTheme patch to be able to change the appearance of windows frames. Aero Glass comes with a feature that you can change these images directly
+		without editing the theme. Just provide custom *.png image, point to it with CustomThemeAtlas registry settings and restart DWM.EXE process. The windows frames will be drawn using your custom
+		image now. Just beware that the layout of theme resource depends on the current system theme. If you do not keep this layout, your frames will be rendered incorrectly.<br><br>
+		Starting with the version 1.4, you can provide additional layout data by supplying a *.png.layout file in the folder where *.png atlas image is stored. Aero Glass will then ignore current theme layout and use data in this file.
+		The description of the file format is:
+	<ul type="square">
+		<li>each line has format "x;y;z=a,b,c,d"</li>
+		<li>x, y, z specify the part, its state and the property respectively</li>
+		<li>a, b, c, d specify position rectangle in atlas image (for z = 8002) or the part sizing/content margins (for z = 3601/3602)</li>
+		<li>see example layout file for description of individual part identifiers</li>
+		<li>see MSDN documentation of GetThemeRect and GetThemeMargins function for further information</li>
+		<li>line "CaptionHeight=n" allows you to change the size of caption buttons to "n" pixels</li>
+		<li>everything after # is considered to be the comment and is ignored</li>
+	</ul>
+	</li>
+
+	<li id="noblurregion" class="question">Why is there no blur effect in the region/window/etc.?<br>Is it possible to enable the blur effect on the taskbar (Alt-Tab window, any other window etc.) ?</li>
+	<li class="answer">
+		Remember that DWM is the rendering engine only and Aero Glass for Win8+ is the extension for it. It will apply glass effect only on the regions which are marked to have blur behind. It does not alter any region behaviour on its own.
+		If some application wants to have glass effect somewhere, it must enable it explicitely. The taskbar belongs to Windows Explorer shell, thus you must enable blur behind on your own by calling DWM API function
+		<a href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa969508(v=vs.85).aspx">DwmEnableBlurBehindWindow</a>. Blur effect will also apply tint of glass color.
+		<br><br>
+		Windows 8+ Desktop Window Manager contains new feature called accent. It is a kind of effect which makes whole window fully transparent with tint of glass color. This effect is enabled on the taskbar by default.
+		If you enable blur behind the taskbar but don't disable accent effect (using SetWindowCompositionAttribute API function), you may notice that it will be much more colorized, because the color of both effects will be
+		simply added together.
+		<br><br>
+		If you are not familiar with DWM programming API, you can use any of the existing tools that have option to call the DwmEnableBlurBehindWindow function, such as StartIsBack or ClassicShell. You can also abuse a internal
+		Windows Explorer feature - if your theme file name is equal to aerolite.msstyles, it enables blur on the taskbar, disables the accent effect and vice versa. For very advanced users, there is <a href="download.html">a
+		command line tool</a> which allows you to alter any window's composition attributes.
+		<br><br>Also remember that taskbar appearance is influenced by used theme where texture used for the taskbar is different from the atlas texture used for windows frames rendering.
+	</li>
+</ul>		</div>
+
+		<div id="footer">
+        	<div style="float:left; margin: 10px">
+			</div>
+	    	<div style="margin: 10px">Copyright © 2023-2023 Owen Tech</span>
+	  	</div>
+	</div>
+
+</body>
+
+<!-- Mirrored from glass8.eu/guide by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 08 Jul 2022 23:42:06 GMT -->
+</html>

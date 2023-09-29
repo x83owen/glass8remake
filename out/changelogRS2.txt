@@ -1,0 +1,48 @@
+-- 1.5.13 (13.12.2019) --
+* version for Windows 10 November 2019 Update (v1909)
+* fixed loading CustomThemeMaterial
+* using theme default glow size when TextGlowMode set to 0x00000003
+* render glow effect under text only when window caption is set to center
+
+-- 1.5.10 (9.12.2018) --
+* version for Windows 10 October Update (v1809)
+* added hardcoded patterns verification when symbol files are present (it will try to download symbol files on the first run)
+* increase default buffer sizes to avoid too often resizing
+* changed license key checking to accept keys for both HyperV enabled or disabled
+* fixed loading ColorizationColorBalance settings from registry
+* additional changes to match acrylic design (installer provides option which design to use)
+	HKCU\Software\Microsoft\Windows\DWM
+	- CustomThemeReflection - file with texture that is stretched over whole desktop and rendered above glass regions (default is Aero Glass Win7 reflection texture)
+	- CustomThemeMaterial - file with texture that is rendered (tiled) above glass regions (default is Acrylic noise texture)
+	- ColorizationGlassReflectionIntensity - opacity of reflection texture (default = 0)
+	- MaterialOpacity - opacity of material texture (default = 4)
+
+-- 1.5.9 (20.7.2018) --
+* version for Windows 10 April Update (v1803)
+
+-- 1.5.8 (26.2.2018) --
+* fixed random glitches on occlusion regions
+* fixed optimized dirty rectangles indexing
+* fixed UWP apps frame's Direct3D device management
+* hardcoded symbols for 10.0.16299.248
+* very limited support for Insider build 17074.1002
+
+-- 1.5.7 (16.12.2017) --
+* version designed for Windows 10 Fall Creators Update
+* hardcoded symbols for 10.0.16299.0
+
+-- 1.5.6 (10.9.2017) --
+* hardcoded symbols for 10.0.15063.540
+* another fix for DPI-Awareness on UWP apps titlebars
+* fixed antioccluder on UWP apps
+* stability fixes
+
+-- 1.5.5 (20.8.2017) --
+* fixed drawing context destructor hook
+* fixed DPI-Awareness on UWP apps titlebars
+* hopefully fixed titlebars on UWP apps with extended frame
+	- ApplicationFrame symbols are required to make this work correctly
+
+-- 1.5.4 (12.8.2017) --
+* version designed for Windows 10 Creators Update (10.0.15063)
+* dropped support for 32-bit systems
